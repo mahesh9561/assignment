@@ -7,6 +7,7 @@ function Dashboard() {
     const [city, setCity] = useState('');
     const [error, setError] = useState('');
     const [weather, setWeatherData] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     const dispatch = useDispatch();
     const favorite = useSelector(state => state.data.favorites);
@@ -17,10 +18,10 @@ function Dashboard() {
             dispatch(addRecentSearch(city));
         }
     }, [city, dispatch]);
-    
 
     const fetchWeatherData = async () => {
         try {
+            setLoading(true);
             setError('');
             const apiKey = 'f8e2678a637f76bb77220e00374ef826';
             const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
@@ -31,6 +32,8 @@ function Dashboard() {
             dispatch(setWeather(data));
         } catch (error) {
             setError('City not found or an error occurred while fetching data.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -68,27 +71,64 @@ function Dashboard() {
                 </div>
                 {error && <p style={{ color: 'red' }}>{error}</p>}
                 <div>
-                    {weather && (
-                        <div>
-                            <h2>City Name: {weather.name}</h2>
-                            <p>Temperature: {(weather.main.temp - 273.15).toFixed(2)} °C</p>
-                            <p>Weather: {weather.weather[0].description}</p>
-                            <p>Humidity: {weather.main.humidity}%</p>
-                            <p>Wind Speed: {weather.wind.speed} m/s</p>
-                            <p>
-                                Sunrise: {new Date(weather.sys.sunrise * 1000).toLocaleTimeString()}
-                            </p>
-                            <p>
-                                Sunset: {new Date(weather.sys.sunset * 1000).toLocaleTimeString()}
-                            </p>
-                            <button
-                                type="button"
-                                onClick={() => handleFavorite(weather)}
-                                className='px-4 py-2 bg-green-500 text-white'
-                            >
-                                Add Favorite
-                            </button>
-                        </div>
+                    {loading ? (
+                        <p>Loading weather data...</p> 
+                    ) : (
+                        weather && (
+                            <table className="table-auto border-collapse border border-gray-400 w-full my-5">
+                                <thead>
+                                    <tr>
+                                        <th className="border border-gray-300 px-4 py-2">Property</th>
+                                        <th className="border border-gray-300 px-4 py-2">Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td className="border border-gray-300 px-4 py-2">City Name</td>
+                                        <td className="border border-gray-300 px-4 py-2">{weather.name}</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border border-gray-300 px-4 py-2">Temperature</td>
+                                        <td className="border border-gray-300 px-4 py-2">{(weather.main.temp - 273.15).toFixed(2)} °C</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border border-gray-300 px-4 py-2">Weather</td>
+                                        <td className="border border-gray-300 px-4 py-2">{weather.weather[0].description}</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border border-gray-300 px-4 py-2">Humidity</td>
+                                        <td className="border border-gray-300 px-4 py-2">{weather.main.humidity}%</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border border-gray-300 px-4 py-2">Wind Speed</td>
+                                        <td className="border border-gray-300 px-4 py-2">{weather.wind.speed} m/s</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border border-gray-300 px-4 py-2">Sunrise</td>
+                                        <td className="border border-gray-300 px-4 py-2">
+                                            {new Date(weather.sys.sunrise * 1000).toLocaleTimeString()}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="border border-gray-300 px-4 py-2">Sunset</td>
+                                        <td className="border border-gray-300 px-4 py-2">
+                                            {new Date(weather.sys.sunset * 1000).toLocaleTimeString()}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colSpan="2" className="border border-gray-300 px-4 py-2 text-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleFavorite(weather)}
+                                                className="px-4 py-2 bg-green-500 text-white"
+                                            >
+                                                Add Favorite
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        )
                     )}
                 </div>
                 <div>
